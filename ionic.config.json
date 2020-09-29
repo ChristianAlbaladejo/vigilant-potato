@@ -1,0 +1,7 @@
+{
+  "name": "treeFront",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
