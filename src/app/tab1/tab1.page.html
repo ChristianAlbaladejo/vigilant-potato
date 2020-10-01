@@ -1,17 +1,71 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 1
+    <ion-title *ngIf="identity">
+      Hola {{identity[0].NOMBRE}}
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+  <form>
+    <ion-item lines="full">
+      <ion-label position="stacked">Obra</ion-label>
+      <ion-searchbar type="text" debounce="600" [(ngModel)]="obra" name="obra" placeholder="Buscar obra"
+        (ionInput)="getItems($event)"></ion-searchbar>
+      <ion-list *ngIf="isItemAvailable">
+        <ion-item *ngFor="let o of obras" (click)="obraSelected(o)">{{ o.DESCRIPCION }} - {{o.OBRA}}</ion-item>
+      </ion-list>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="floating">Empresa</ion-label>
+      <ion-input *ngIf="empresa" [(ngModel)]="empresa.DESCRIPCION" placeholder="Empresa de la obra" name="empresa"
+        type="text" disabled></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="floating">Nº de horas</ion-label>
+      <ion-input [(ngModel)]="numHours" name="numhours" type="number" required></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="floating">Observaciones</ion-label>
+      <ion-textarea [(ngModel)]="observations" name="observations" placeholder="Tus observaciones..."></ion-textarea>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="floating">Fecha</ion-label>
+      <ion-datetime  name="time" displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY"
+        [(ngModel)]="myDate">
+      </ion-datetime>
+    </ion-item>
+
+    <ion-row>
+      <ion-col>
+        <ion-button type="button" color="danger" expand="block">Cancelar</ion-button>
+      </ion-col>
+      <ion-col>
+        <ion-button type="submit" color="success" expand="block" (click)="save()">Aceptar</ion-button>
+      </ion-col>
+    </ion-row>
+  </form>
+  <ion-header [translucent]="true">
     <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
+      <ion-title>Tus obras</ion-title>
     </ion-toolbar>
   </ion-header>
-
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <div *ngIf="tareas">
+    <ion-item-sliding *ngFor="let t of tareas">
+      <ion-item>
+        <ion-label>
+          {{t.DESCRIPCION}}, {{t.CANTIDAD}}
+        </ion-label>
+      </ion-item>
+      <ion-item-options>
+        <ion-item-option color="danger">
+          <ion-icon name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </div>
 </ion-content>

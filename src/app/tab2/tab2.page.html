@@ -1,17 +1,22 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Tab 2
+      RRHH
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 2</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <app-explore-container name="Tab 2 page"></app-explore-container>
+  <ion-item lines="full">
+    <ion-label position="floating">Mensaje</ion-label>
+    <ion-textarea [(ngModel)]="text" name="text" rows="6" cols="20" placeholder="Escribe aqui tu mensaje">
+    </ion-textarea>
+  </ion-item>
+  <ion-row>
+    <ion-col>
+    </ion-col>
+    <ion-col>
+      <ion-button type="submit" color="success" expand="block">Aceptar</ion-button>
+    </ion-col>
+  </ion-row>
 </ion-content>

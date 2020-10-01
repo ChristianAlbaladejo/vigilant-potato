@@ -1,0 +1,27 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="login" no-bounce>
+  <ion-card padding class="login-box">
+    <!-- <img src="../../assets/logo.PNG" alt="" class="if-logo"> -->
+    <form #loginForm="ngForm" (ngSubmit)="onSubmit()" novalidate>
+      <ion-item>
+
+        <ion-input clearInput="false" [(ngModel)]="user.id" #id="ngModel" placeholder="Id" name="id"
+          type="text" spellcheck="false" autocapitalize="off" class="code" required></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input clearInput="false" [(ngModel)]="user.password" #password="ngModel" placeholder="Password"
+          name="password" type="password" spellcheck="false" autocapitalize="off" class="code" required></ion-input>
+      </ion-item>
+
+      <ion-button type="submit" color="primary" class="login-button" block>
+        Login
+      </ion-button>
+    </form>
+  </ion-card>
+</ion-content>
