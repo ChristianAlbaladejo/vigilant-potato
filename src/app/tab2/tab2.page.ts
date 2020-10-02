@@ -1,4 +1,8 @@
 import { Component } from '@angular/core';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular'
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tab2',
@@ -6,7 +10,49 @@ import { Component } from '@angular/core';
   styleUrls: ['tab2.page.scss']
 })
 export class Tab2Page {
+  text = ""
+  identity
+  constructor(public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient, public toastController: ToastController) {
+    let identity = JSON.parse(localStorage.getItem('identity'));
+    if (identity != null) {
+      this.identity = JSON.parse(identity);
+      console.log(this.identity)
+    } else {
+      this.router.navigateByUrl('/login');
+    }
+  }
 
-  constructor() {}
+  async send() {
+    let object = {
+      "text":  this.text,
+      "user": this.identity[0].NOMBRE,
+      "user_id": this.identity[0].COD_PERSONAL,
+    }
+    let loading = this.loading.create({
+      message: 'Por favor espere....'
+    });
+    (await loading).present();
+    let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept', '*/*')
+    await this.http.post(environment.API + '/mail', object, { headers: headers }).subscribe(async (response) => {
+        const toast = await this.toastController.create({
+          message: 'Tu correo ha sido enviado.',
+          color: 'success',
+          duration: 2000
+        });
+      (await loading).dismiss();
+        toast.present();
+    }, async error => {
+      const alert = await this.alert.create({
+        cssClass: 'my-custom-class',
+        header: 'Alert',
+        subHeader: '',
+        message: 'Error al enviar tu correo.',
+        buttons: ['OK']
+      });
+      (await loading).dismiss();
+      await alert.present();
+    });
+    
+  }
 
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, NavController } from '@ionic/angular'
-import { HttpClient, HttpHeaders  } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
@@ -20,24 +20,30 @@ export class LoginPage implements OnInit {
   ngOnInit() { }
 
   async onSubmit() {
-    
     let loading = this.loading.create({
       message: 'Please wait...'
     });
     (await loading).present();
     let params = this.user;
     console.log(params);
-    let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept','*/*')
-    await this.http.post('http://172.19.192.1:5000/login/', params, { headers: headers }).subscribe((response) => {
+    let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept', '*/*')
+    await this.http.post('http://172.19.192.1:5000/login/', params, { headers: headers }).subscribe(async (response) => {
       console.log(response);
       window.localStorage.setItem('identity', JSON.stringify(response));
+      (await loading).dismiss();
       this._router.navigateByUrl('/tabs')
-    }, error =>{
-      console.log(error);
-      
+    }, async error => {
+      this.user.id = ""
+      this.user.password = ""
+      const alert = await this.alert.create({
+        cssClass: 'my-custom-class',
+        header: 'Alert',
+        subHeader: '',
+        message: 'Error al enviar tu trabajo.',
+        buttons: ['OK']
+      });
+      (await loading).dismiss();
+      await alert.present();
     });
-    (await loading).dismiss();
-
-
   }
 }

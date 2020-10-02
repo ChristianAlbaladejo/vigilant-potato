@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, NavController } from '@ionic/angular'
+import { environment } from '../../environments/environment'
 
 @Component({
   selector: 'app-tab1',
@@ -16,6 +17,7 @@ export class Tab1Page {
   identity;
   obra_id;
   observations = "";
+  total;
   numHours = 0;
   constructor(public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) {
     this.load();
@@ -47,11 +49,10 @@ export class Tab1Page {
     this.obra = selected.DESCRIPCION;
     this.obra_id = selected.OBRA
     this.isItemAvailable = false;
-    this.http.get('http://172.19.192.1:5000/empresa/' + selected.EMPRESA).subscribe((response) => {
+    this.http.get(environment.API + '/empresa/' + selected.EMPRESA).subscribe((response) => {
       this.empresa = response;
       this.empresa = JSON.parse(this.empresa)
       this.empresa = this.empresa[0]
-      console.log(this.empresa.DESCRIPCION);
     });
   }
 
@@ -64,15 +65,19 @@ export class Tab1Page {
     } else {
       this.router.navigateByUrl('/login');
     }
-    await this.http.get('http://172.19.192.1:5000/').subscribe((response) => {
+    await this.http.get(environment.API + '/' + this.identity[0].EMPRESA).subscribe((response) => {
       this.obras = response;
       this.obras = JSON.parse(this.obras)
       console.log(this.obras);
     });
-    await this.http.get('http://172.19.192.1:5000/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
+    await this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
+      this.total = 0;
       this.tareas = response;
       this.tareas = JSON.parse(this.tareas)
-      console.log(this.tareas);
+      for (let i = 0; i < this.tareas.length; i++) {
+        this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2)
+        this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
+      }
     });
   }
 
@@ -86,20 +91,56 @@ export class Tab1Page {
       "cantidad": this.numHours
     }
     let loading = this.loading.create({
-      message: 'Please wait...'
+      message: 'Por favor espere...'
     });
     (await loading).present();
     let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept', '*/*')
-    await this.http.post('http://172.19.192.1:5000/save/', object, { headers: headers }).subscribe((response) => {
-      console.log('TOMA');
-    }, error => {
-      console.log(error);
+    await this.http.post(environment.API + '/save/', object, { headers: headers }).subscribe(async (response) => {
+      await this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
+        this.total = 0;
+        this.tareas = response;
+        this.tareas = JSON.parse(this.tareas)
+        for (let i = 0; i < this.tareas.length; i++) {
+          this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2)
+          this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
+        }
+      });
+      this.empresa.EMPRESA = "";
+      this.observations = "";
+      this.numHours = 0;
+      this.obra = "";
+      (await loading).dismiss();
+    }, async error => {
+      const alert = await this.alert.create({
+        cssClass: 'my-custom-class',
+        header: 'Alert',
+        subHeader: '',
+        message: 'Error al enviar tu trabajo.',
+        buttons: ['OK']
+      });
+      (await loading).dismiss();
+      await alert.present();
     });
-    (await loading).dismiss();
-
-
-    console.log(object);
-
   }
 
+  salir() {
+    window.localStorage.removeItem('identity');
+    this.router.navigateByUrl('/login')
+  }
+
+  delete(t) {
+    this.http.delete(environment.API + '/delete/' + t.LINEA + '/' + t.FECHA + '/' + t.OBRA + '/' + this.identity[0].COD_PERSONAL).subscribe(async (response) => {
+      await this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
+        this.total = 0;
+        this.tareas = response;
+        this.tareas = JSON.parse(this.tareas)
+        for (let i = 0; i < this.tareas.length; i++) {
+          this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2)
+          this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
+        }
+        console.log(this.tareas);
+      });
+    });
+
+  }
 }
