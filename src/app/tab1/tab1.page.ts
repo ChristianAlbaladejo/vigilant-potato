@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, NavController } from '@ionic/angular'
@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment'
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss']
 })
-export class Tab1Page {
+export class Tab1Page implements OnInit{
   myDate: String = new Date().toISOString();
   obras: any;
   empresa: any;
@@ -19,15 +19,18 @@ export class Tab1Page {
   observations = "";
   total;
   numHours = 0;
-  constructor(public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) {
-    this.load();
-  }
+  constructor(public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) { this.load(); }
   obra: String;
   isItemAvailable = false;
   items = [];
 
+
   initializeItems() {
     this.items = ["Obra1 - 1234", "Obra2 - 4321", "Obra3 - 7894"];
+  }
+  
+  ngOnInit(): void {
+    this.load();
   }
 
   getItems(ev: any) {
@@ -113,7 +116,7 @@ export class Tab1Page {
     }, async error => {
       const alert = await this.alert.create({
         cssClass: 'my-custom-class',
-        header: 'Alert',
+        header: 'Error',
         subHeader: '',
         message: 'Error al enviar tu trabajo.',
         buttons: ['OK']

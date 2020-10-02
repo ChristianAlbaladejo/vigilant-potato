@@ -44,7 +44,7 @@ export class Tab2Page {
     }, async error => {
       const alert = await this.alert.create({
         cssClass: 'my-custom-class',
-        header: 'Alert',
+        header: 'Error',
         subHeader: '',
         message: 'Error al enviar tu correo.',
         buttons: ['OK']

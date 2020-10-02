@@ -11,11 +11,13 @@ import { AppComponent } from './app.component';
 
 import { AutoCompleteModule } from 'ionic4-auto-complete';
 import { HttpClientModule } from '@angular/common/http';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, AutoCompleteModule, HttpClientModule ],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, AutoCompleteModule, HttpClientModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }) ],
   providers: [
     StatusBar,
     SplashScreen,

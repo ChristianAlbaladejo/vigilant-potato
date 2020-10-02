@@ -37,9 +37,9 @@ export class LoginPage implements OnInit {
       this.user.password = ""
       const alert = await this.alert.create({
         cssClass: 'my-custom-class',
-        header: 'Alert',
+        header: 'Error',
         subHeader: '',
-        message: 'Error al enviar tu trabajo.',
+        message: 'Usuario o contraseña erroneos.',
         buttons: ['OK']
       });
       (await loading).dismiss();
