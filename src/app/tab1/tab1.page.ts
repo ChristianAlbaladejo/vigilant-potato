@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment'
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss']
 })
-export class Tab1Page implements OnInit{
+export class Tab1Page implements OnInit {
   myDate: String = new Date().toISOString();
   obras: any;
   empresa: any;
@@ -19,7 +19,7 @@ export class Tab1Page implements OnInit{
   observations = "";
   total;
   numHours = 0;
-  constructor(public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) { this.load(); }
+  constructor(public navCtrl: NavController, public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) { this.load(); }
   obra: String;
   isItemAvailable = false;
   items = [];
@@ -28,7 +28,7 @@ export class Tab1Page implements OnInit{
   initializeItems() {
     this.items = ["Obra1 - 1234", "Obra2 - 4321", "Obra3 - 7894"];
   }
-  
+
   ngOnInit(): void {
     this.load();
   }
@@ -85,50 +85,63 @@ export class Tab1Page implements OnInit{
   }
 
   async save() {
-    let object = {
-      "empresa": this.empresa.EMPRESA,
-      "obra": this.obra_id,
-      "fecha": this.myDate.slice(0, 10),
-      "codigo": this.identity[0].COD_PERSONAL,
-      "descripcion": this.observations,
-      "cantidad": this.numHours
-    }
-    let loading = this.loading.create({
-      message: 'Por favor espere...'
-    });
-    (await loading).present();
-    let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept', '*/*')
-    await this.http.post(environment.API + '/save/', object, { headers: headers }).subscribe(async (response) => {
-      await this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
-        this.total = 0;
-        this.tareas = response;
-        this.tareas = JSON.parse(this.tareas)
-        for (let i = 0; i < this.tareas.length; i++) {
-          this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2)
-          this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
-        }
+    if (this.empresa !== null && this.empresa !== undefined && this.obra_id !== null && this.obra_id !== undefined && this.identity[0] !== null && this.identity[0] !== undefined && this.numHours !== undefined && this.numHours !== null && this.observations !== undefined && this.observations !== null) {
+      let object = {
+        "empresa": this.empresa.EMPRESA,
+        "obra": this.obra_id,
+        "fecha": this.myDate.slice(0, 10),
+        "codigo": this.identity[0].COD_PERSONAL,
+        "descripcion": this.observations,
+        "cantidad": this.numHours
+      }
+      let loading = this.loading.create({
+        message: 'Por favor espere...'
       });
-      this.empresa.EMPRESA = "";
-      this.observations = "";
-      this.numHours = 0;
-      this.obra = "";
-      (await loading).dismiss();
-    }, async error => {
+      (await loading).present();
+      let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept', '*/*')
+      await this.http.post(environment.API + '/save/', object, { headers: headers }).subscribe(async (response) => {
+        await this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
+          this.total = 0;
+          this.tareas = response;
+          this.tareas = JSON.parse(this.tareas)
+          for (let i = 0; i < this.tareas.length; i++) {
+            this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2)
+            this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
+          }
+        });
+        this.empresa.EMPRESA = "";
+        this.observations = "";
+        this.numHours = 0;
+        this.obra = "";
+        (await loading).dismiss();
+      }, async error => {
+        const alert = await this.alert.create({
+          cssClass: 'my-custom-class',
+          header: 'Error',
+          subHeader: '',
+          message: 'Error al enviar tu trabajo.',
+          buttons: ['OK']
+        });
+        (await loading).dismiss();
+        await alert.present();
+      });
+    } else {
+      console.log(this.empresa, this.obra_id, this.identity[0], this.numHours);
+
       const alert = await this.alert.create({
         cssClass: 'my-custom-class',
         header: 'Error',
         subHeader: '',
-        message: 'Error al enviar tu trabajo.',
+        message: 'Por favor rellene el formulario .',
         buttons: ['OK']
       });
-      (await loading).dismiss();
       await alert.present();
-    });
+    }
   }
 
   salir() {
     window.localStorage.removeItem('identity');
-    this.router.navigateByUrl('/login')
+    this.navCtrl.navigateRoot('/login');
   }
 
   delete(t) {
