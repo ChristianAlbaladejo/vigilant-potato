@@ -18,10 +18,10 @@
       </ion-list>
     </ion-item>
 
-    <ion-item lines="full">
-      <ion-label position="floating">Empresa</ion-label>
-      <ion-input *ngIf="empresa" [(ngModel)]="empresa.DESCRIPCION" placeholder="Empresa de la obra" name="empresa"
-        type="text" disabled></ion-input>
+    <ion-item lines="full" class="opacity">
+      <ion-label position="floating" class="opacity">Empresa</ion-label>
+      <ion-input *ngIf="empresa" [(ngModel)]="empresa.DESCRIPCION" class="opacity" placeholder="Empresa de la obra" name="empresa"
+        type="text" [readonly]="true"></ion-input>
     </ion-item>
 
     <ion-item lines="full">
@@ -59,7 +59,7 @@
     <ion-item-sliding *ngFor="let t of tareas">
       <ion-item>
         <ion-label>
-          {{t.DESCRIPCION}}, {{t.CANTIDAD}}
+          {{t.DESCRIPCION}}, {{t.CANTIDAD}} h
         </ion-label>
       </ion-item>
       <ion-item-options>
