@@ -18,7 +18,7 @@ export class Tab1Page implements OnInit {
   obra_id;
   observations = "";
   total;
-  numHours = 0;
+  numHours;
   constructor(public navCtrl: NavController, public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) { this.load(); }
   obra: String;
   isItemAvailable = false;

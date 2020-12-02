@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <form>
+  <form> 
     <ion-item lines="full">
       <ion-label position="stacked">Obra</ion-label>
       <ion-searchbar type="text" debounce="600" [(ngModel)]="obra" name="obra" placeholder="Buscar obra"
@@ -18,15 +18,15 @@
       </ion-list>
     </ion-item>
 
-    <ion-item lines="full" class="opacity">
-      <ion-label position="floating" class="opacity">Empresa</ion-label>
-      <ion-input *ngIf="empresa" [(ngModel)]="empresa.DESCRIPCION" class="opacity" placeholder="Empresa de la obra" name="empresa"
+    <ion-item lines="full">
+      <ion-label position="floating">Empresa</ion-label>
+      <ion-input *ngIf="empresa" [(ngModel)]="empresa.DESCRIPCION" placeholder="Empresa de la obra" name="empresa"
         type="text" [readonly]="true"></ion-input>
     </ion-item>
 
     <ion-item lines="full">
       <ion-label position="floating">Horas</ion-label>
-      <ion-input [(ngModel)]="numHours" name="numhours"  clearOnEdit="true" minlength="0" inputmode="numeric" maxlength="1" required></ion-input>
+      <ion-input [(ngModel)]="numHours" name="numhours" pattern="^[1-9]{1,3}$|^[0-9]{1,3}\.[0-9]{1,3}$"  clearOnEdit="true" inputmode="numeric" min="0"  type=number required></ion-input>
     </ion-item>
 
     <ion-item lines="full">
@@ -46,7 +46,7 @@
         <ion-button type="button" color="danger" expand="block" (click)="salir()">Salir</ion-button>
       </ion-col>
       <ion-col>
-        <ion-button type="submit" color="success" expand="block" (click)="save()">Aceptar</ion-button>
+        <ion-button type="submit" color="success" expand="block" (click)="save()"  [disabled]="!obra || !numHours || numHours <= 0 || numHours ==='-' ">Aceptar</ion-button>
       </ion-col>
     </ion-row>
   </form>
