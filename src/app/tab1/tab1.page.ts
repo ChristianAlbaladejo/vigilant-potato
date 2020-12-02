@@ -68,22 +68,38 @@ export class Tab1Page implements OnInit {
     } else {
       this.router.navigateByUrl('/login');
     }
-    await this.http.get(environment.API + '/' + this.identity[0].EMPRESA).subscribe(async (response) => {
-      this.obras = response;
-      this.obras = JSON.parse(this.obras)
-      console.log(this.obras);
-      await this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
-        this.total = 0;
-        this.tareas = response;
-        this.tareas = JSON.parse(this.tareas)
-        for (let i = 0; i < this.tareas.length; i++) {
-          this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2)
-          this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
-        }
-        console.log(this.tareas);
-        
+    try {
+      this.http.get(environment.API + '/' + this.identity[0].EMPRESA).subscribe(async (response) => {
+        this.obras = response;
+        this.obras = JSON.parse(this.obras);
+        this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
+          this.total = 0;
+          this.tareas = response;
+          this.tareas = JSON.parse(this.tareas);
+          for (let i = 0; i < this.tareas.length; i++) {
+            this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2);
+            this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
+          }
+        });
+      }, async error => {
+        const alert = await this.alert.create({
+          cssClass: 'my-custom-class',
+          header: 'Error',
+          subHeader: '',
+          message: 'Error al cargar los datos.',
+          buttons: [{
+            text: 'Ok',
+            role: 'cancel',
+            handler: () => {
+              this.load();
+            }
+          }]
+        });
+        await alert.present();
       });
-    });
+    } catch (error) {
+     console.log(error)
+    }
   }
 
   async save() {

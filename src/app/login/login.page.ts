@@ -22,7 +22,7 @@ export class LoginPage implements OnInit {
 
   async onSubmit() {
     let loading = this.loading.create({
-      message: 'Please wait...'
+      message: 'Iniciando...'
     });
     (await loading).present();
     let params = this.user;
