@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, NavController } from '@ionic/angular'
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../environments/environment'
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
@@ -27,7 +28,7 @@ export class LoginPage implements OnInit {
     let params = this.user;
     console.log(params);
     let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept', '*/*')
-    await this.http.post('http://172.19.192.1:5000/login/', params, { headers: headers }).subscribe(async (response) => {
+    await this.http.post(environment.API +'/login/', params, { headers: headers }).subscribe(async (response) => {
       console.log(response);
       window.localStorage.setItem('identity', JSON.stringify(response));
       (await loading).dismiss();
