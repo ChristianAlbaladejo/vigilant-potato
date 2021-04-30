@@ -11,6 +11,7 @@ import { environment } from '../../environments/environment'
 })
 export class Tab1Page implements OnInit {
   myDate: String = new Date().toISOString();
+  maxDate: String = new Date().toISOString();
   obras: any;
   empresa: any;
   tareas;
@@ -19,10 +20,19 @@ export class Tab1Page implements OnInit {
   observations = "";
   total;
   numHours;
-  constructor(public navCtrl: NavController, public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) { this.load(); }
   obra: String;
   isItemAvailable = false;
+  isMachineAvailable = false;
   items = [];
+  itemsMachine = [];
+  capitulos;
+  capitulo = "";
+  tipo = 'P';
+  maquina = "";
+  maquinas;
+
+  constructor(public navCtrl: NavController, public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) { this.load(); }
+
 
 
   initializeItems() {
@@ -36,15 +46,32 @@ export class Tab1Page implements OnInit {
   getItems(ev: any) {
     // set val to the value of the searchbar
     const val = ev.target.value;
-
+    this.items = this.obras
     // if the value is an empty string don't filter the items
     if (val && val.trim() !== '') {
       this.isItemAvailable = true;
       this.items = this.items.filter((item) => {
-        return (item.toLowerCase().indexOf(val.toLowerCase()) > -1);
+        console.log(item);
+        return (item.DESCRIPCION.toLowerCase().indexOf(val.toLowerCase()) > -1 || item.OBRA.toLowerCase().indexOf(val.toLowerCase()) > -1);
       })
     } else {
       this.isItemAvailable = false;
+    }
+  }
+
+  getMachines(ev: any) {
+    // set val to the value of the searchbar
+    const val = ev.target.value;
+    this.itemsMachine = this.maquinas
+    // if the value is an empty string don't filter the itemsMachine
+    if (val && val.trim() !== '') {
+      this.isMachineAvailable = true;
+      this.itemsMachine = this.itemsMachine.filter((item) => {
+        console.log(item);
+        return (item.NOMBRE.toLowerCase().indexOf(val.toLowerCase()) > -1 || item.COD_MAQUINA.toLowerCase().indexOf(val.toLowerCase()) > -1);
+      })
+    } else {
+      this.isMachineAvailable = false;
     }
   }
 
@@ -57,6 +84,16 @@ export class Tab1Page implements OnInit {
       this.empresa = JSON.parse(this.empresa)
       this.empresa = this.empresa[0]
     });
+    this.http.get(environment.API + '/capitulo/' + selected.OBRA).subscribe((response) => {
+      this.capitulos = response;
+      this.capitulos = JSON.parse(this.capitulos)
+      this.capitulo = ""
+    });
+  }
+
+  maquinaSelected(selected: any): void{
+    this.maquina = selected.COD_MAQUINA
+     this.isMachineAvailable = false;
   }
 
 
@@ -65,40 +102,48 @@ export class Tab1Page implements OnInit {
     if (identity != null) {
       this.identity = JSON.parse(identity);
       console.log(this.identity)
+      try {
+
+        this.http.get(environment.API + '/' + this.identity[0].EMPRESA).subscribe(async (response) => {
+          this.obras = response;
+          this.obras = JSON.parse(this.obras);
+          this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
+            this.total = 0;
+            this.tareas = response;
+            this.tareas = JSON.parse(this.tareas);
+            for (let i = 0; i < this.tareas.length; i++) {
+              this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2);
+              this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
+            }
+            this.http.get(environment.API + '/maquinas').subscribe((response) => {
+              this.maquinas = response;
+              this.maquinas = JSON.parse(this.maquinas);
+              console.log(this.maquinas)
+            });
+          }, async error =>{
+            this.load()
+          });
+        }, async error => {
+          const alert = await this.alert.create({
+            cssClass: 'my-custom-class',
+            header: 'Error',
+            subHeader: '',
+            message: 'Error al cargar los datos.',
+            buttons: [{
+              text: 'Ok',
+              role: 'cancel',
+              handler: () => {
+                this.load();
+              }
+            }]
+          });
+          await alert.present();
+        });
+      } catch (error) {
+        console.log(error)
+      }
     } else {
       this.router.navigateByUrl('/login');
-    }
-    try {
-      this.http.get(environment.API + '/' + this.identity[0].EMPRESA).subscribe(async (response) => {
-        this.obras = response;
-        this.obras = JSON.parse(this.obras);
-        this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
-          this.total = 0;
-          this.tareas = response;
-          this.tareas = JSON.parse(this.tareas);
-          for (let i = 0; i < this.tareas.length; i++) {
-            this.tareas[i].CANTIDAD = parseFloat(this.tareas[i].CANTIDAD).toFixed(2);
-            this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
-          }
-        });
-      }, async error => {
-        const alert = await this.alert.create({
-          cssClass: 'my-custom-class',
-          header: 'Error',
-          subHeader: '',
-          message: 'Error al cargar los datos.',
-          buttons: [{
-            text: 'Ok',
-            role: 'cancel',
-            handler: () => {
-              this.load();
-            }
-          }]
-        });
-        await alert.present();
-      });
-    } catch (error) {
-     console.log(error)
     }
   }
 
@@ -110,8 +155,12 @@ export class Tab1Page implements OnInit {
         "fecha": this.myDate.slice(0, 10),
         "codigo": this.identity[0].COD_PERSONAL,
         "descripcion": this.observations,
-        "cantidad": this.numHours
+        "cantidad": this.numHours,
+        "tipo": this.tipo,
+        "codigo_maquina": this.maquina,
+        "capitulo": this.capitulo,
       }
+      console.log(object)
       let loading = this.loading.create({
         message: 'Por favor espere...'
       });
@@ -127,8 +176,9 @@ export class Tab1Page implements OnInit {
             this.total = (parseFloat(this.tareas[i].CANTIDAD) + parseFloat(this.total || 0)).toFixed(1);
           }
         });
-        this.empresa.EMPRESA = null
         this.observations = "";
+        this.maquina = "";
+        this.capitulo = "";
         this.numHours = 0;
         this.obra = null;
         (await loading).dismiss();
@@ -163,7 +213,7 @@ export class Tab1Page implements OnInit {
   }
 
   delete(t) {
-    this.http.delete(environment.API + '/delete/' + t.LINEA + '/' + t.FECHA + '/' + t.OBRA + '/' + this.identity[0].COD_PERSONAL).subscribe(async (response) => {
+    this.http.delete(environment.API + '/delete/' + t.LINEA + '/' + t.OBRA + '/' + this.identity[0].COD_PERSONAL).subscribe(async (response) => {
       await this.http.get(environment.API + '/workday/' + this.identity[0].COD_PERSONAL).subscribe((response) => {
         this.total = 0;
         this.tareas = response;

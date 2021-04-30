@@ -14,7 +14,7 @@
       <ion-searchbar type="text" debounce="600" [(ngModel)]="obra" name="obra" placeholder="Buscar obra"
         (ionInput)="getItems($event)"></ion-searchbar>
       <ion-list *ngIf="isItemAvailable">
-        <ion-item *ngFor="let o of obras" (click)="obraSelected(o)">{{ o.DESCRIPCION }} - {{o.OBRA}}</ion-item>
+        <ion-item *ngFor="let o of items" (click)="obraSelected(o)">{{ o.DESCRIPCION }} - {{o.OBRA}}</ion-item>
       </ion-list>
     </ion-item>
 
@@ -30,6 +30,30 @@
     </ion-item>
 
     <ion-item lines="full">
+      <ion-label position="floating">Tipo</ion-label>
+      <ion-select [value]="tipo" [(ngModel)]="tipo"  name="type" okText="Okay" cancelText="Cancelar">
+        <ion-select-option value="M">Maquina</ion-select-option>
+        <ion-select-option value="P">Persona</ion-select-option>
+        <ion-select-option value="X">Mixto</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item  lines="none" *ngIf="tipo != 'P'">
+      <ion-label position="floating">Maquina</ion-label>
+      <ion-input [(ngModel)]="maquina"  debounce="600" name="maquina" clearOnEdit="true" (ionInput)="getMachines($event)" required></ion-input>
+      <ion-list *ngIf="isMachineAvailable">
+        <ion-item *ngFor="let m of itemsMachine" (click)="maquinaSelected(m)">{{ m.NOMBRE }} - {{m.COD_MAQUINA}}</ion-item>
+      </ion-list>
+    </ion-item>
+
+    <ion-item lines="full" *ngIf="capitulos">
+      <ion-label position="floating">Capítulo</ion-label>
+      <ion-select interface="action-sheet" [(ngModel)]="capitulo" name="cap">
+        <ion-select-option *ngFor="let i of capitulos" [value]="i.CAPITULO">{{i.NOMBRE}}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item lines="full">
       <ion-label position="floating">Observaciones</ion-label>
       <ion-textarea [(ngModel)]="observations" name="observations" placeholder="Tus observaciones..."></ion-textarea>
     </ion-item>
@@ -37,7 +61,7 @@
     <ion-item lines="full">
       <ion-label position="floating">Fecha</ion-label>
       <ion-datetime  name="time" displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY"
-        [(ngModel)]="myDate" [(max)]="myDate">
+        [(ngModel)]="myDate" [(max)]="maxDate">
       </ion-datetime>
     </ion-item>
 
@@ -46,7 +70,7 @@
         <ion-button type="button" color="danger" expand="block" (click)="salir()">Salir</ion-button>
       </ion-col>
       <ion-col>
-        <ion-button type="submit" color="success" expand="block" (click)="save()"  [disabled]="!obra || !numHours || numHours <= 0 || numHours ==='-' ">Aceptar</ion-button>
+        <ion-button type="submit" color="success" expand="block" (click)="save()"  [disabled]="!obra || !numHours || numHours <= 0 || numHours ==='-' || capitulo ==='' || tipo =='M' && maquina === '' || tipo =='X' && maquina === '' " >Aceptar</ion-button>
       </ion-col>
     </ion-row>
   </form>
