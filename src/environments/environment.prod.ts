@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  API: "http://gonzalezsoto.duckdns.org:5001"
+  API: "http://192.168.1.155:5004"
 };

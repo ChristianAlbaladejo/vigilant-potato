@@ -65,3 +65,34 @@ ion-content {
 		no-repeat fixed center;
 	background-size: cover;
 }
+
+.input-group {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 3em;
+}
+
+img{
+    display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  margin-bottom: 4rem;
+}
+ 
+.errors {
+    font-size: small;
+    color: #fff;
+    background: var(--ion-color-danger);
+    padding-left: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.toolbar-title {
+    .subtitle {
+      font-size: 66%;
+      margin: 0;
+    }
+}

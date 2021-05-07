@@ -3,6 +3,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, NavController } from '@ionic/angular'
 import { environment } from '../../environments/environment'
+import { AuthenticationService } from '../services/authentication.service';
+import { Plugins } from '@capacitor/core';
+
+const { Storage } = Plugins;
+const TOKEN_KEY = 'my-token';
 
 @Component({
   selector: 'app-tab1',
@@ -19,19 +24,22 @@ export class Tab1Page implements OnInit {
   obra_id;
   observations = "";
   total;
-  numHours;
+  numHours = 0;
   obra: String;
   isItemAvailable = false;
   isMachineAvailable = false;
+  showPrecios = false
   items = [];
+  precios;
   itemsMachine = [];
   capitulos;
   capitulo = "";
   tipo = 'P';
   maquina = "";
   maquinas;
+  precio;
 
-  constructor(public navCtrl: NavController, public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient) { this.load(); }
+  constructor(public navCtrl: NavController, public loading: LoadingController, private router: Router, public alert: AlertController, private authService: AuthenticationService, private http: HttpClient) { this.load(); }
 
 
 
@@ -93,17 +101,33 @@ export class Tab1Page implements OnInit {
 
   maquinaSelected(selected: any): void{
     this.maquina = selected.COD_MAQUINA
-     this.isMachineAvailable = false;
+    this.isMachineAvailable = false;
+    this.http.get(environment.API + '/precios/' + selected.COD_MAQUINA).subscribe((response) => {
+      this.precios = response;
+      this.precios = JSON.parse(this.precios)
+      console.log(this.precios)
+      if (this.precios.length == 1) {
+        this.precio = this.precios[0].COD_INTERNO
+        this.showPrecios = false;
+      }else{
+        this.showPrecios = true;
+      }
+    });
   }
 
 
   async load() {
-    let identity = JSON.parse(localStorage.getItem('identity'));
+    let loading = this.loading.create({
+      message: 'Por favor espere...'
+    });
+    (await loading).present();
+    let identity = await Storage.get({ key: TOKEN_KEY });
+    identity = JSON.parse(identity.value);
+    console.log(identity)
     if (identity != null) {
-      this.identity = JSON.parse(identity);
+      this.identity = identity;
       console.log(this.identity)
       try {
-
         this.http.get(environment.API + '/' + this.identity[0].EMPRESA).subscribe(async (response) => {
           this.obras = response;
           this.obras = JSON.parse(this.obras);
@@ -139,11 +163,14 @@ export class Tab1Page implements OnInit {
           });
           await alert.present();
         });
+        (await loading).dismiss();
       } catch (error) {
-        console.log(error)
+        (await loading).dismiss();
+        this.salir()
       }
     } else {
-      this.router.navigateByUrl('/login');
+      (await loading).dismiss();
+      this.salir()
     }
   }
 
@@ -159,8 +186,8 @@ export class Tab1Page implements OnInit {
         "tipo": this.tipo,
         "codigo_maquina": this.maquina,
         "capitulo": this.capitulo,
+        "precio_maquina": this.precio
       }
-      console.log(object)
       let loading = this.loading.create({
         message: 'Por favor espere...'
       });
@@ -181,6 +208,7 @@ export class Tab1Page implements OnInit {
         this.capitulo = "";
         this.numHours = 0;
         this.obra = null;
+        this.showPrecios = false;
         (await loading).dismiss();
       }, async error => {
         const alert = await this.alert.create({
@@ -207,9 +235,39 @@ export class Tab1Page implements OnInit {
     }
   }
 
-  salir() {
-    window.localStorage.removeItem('identity');
-    this.navCtrl.navigateRoot('/login');
+  async salir() {
+    await this.authService.logout();
+    this.router.navigateByUrl('/', { replaceUrl: true });
+  }
+
+  checkFocus(){
+    this.isItemAvailable = true;
+    this.items = this.obras
+  }
+
+  checkMaquinaFocus(){
+    this.isMachineAvailable = true;
+    this.itemsMachine = this.maquinas
+  }
+
+
+  incrementQty() {
+    this.numHours += 1;
+  }
+
+  byPassValue(){
+  if (this.numHours < 0) {
+      this.numHours = 0;
+    }
+    console.log(this.numHours)
+  }
+
+  decrementQty() {
+    if (this.numHours <= 0) {
+      this.numHours = 0;
+    } else {
+      this.numHours -= 1;
+    }
   }
 
   delete(t) {

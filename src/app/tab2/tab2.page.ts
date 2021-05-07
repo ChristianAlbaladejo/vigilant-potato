@@ -3,6 +3,10 @@ import { AlertController, LoadingController, ToastController } from '@ionic/angu
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
+import { Plugins } from '@capacitor/core';
+
+const { Storage } = Plugins;
+const TOKEN_KEY = 'my-token';
 
 @Component({
   selector: 'app-tab2',
@@ -12,10 +16,13 @@ import { Router } from '@angular/router';
 export class Tab2Page {
   text = ""
   identity
-  constructor(public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient, public toastController: ToastController) {
-    let identity = JSON.parse(localStorage.getItem('identity'));
+  constructor(public loading: LoadingController, private router: Router, public alert: AlertController, private http: HttpClient, public toastController: ToastController) {}
+  
+  async ngOnInit() {
+    let identity = await Storage.get({ key: TOKEN_KEY });
+    identity = JSON.parse(identity.value);
     if (identity != null) {
-      this.identity = JSON.parse(identity);
+      this.identity = identity;
       console.log(this.identity)
     } else {
       this.router.navigateByUrl('/login');

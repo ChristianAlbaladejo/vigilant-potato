@@ -1,50 +1,87 @@
+import { AuthenticationService } from '../services/authentication.service';
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController, NavController } from '@ionic/angular'
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment'
+import { MenuController } from '@ionic/angular'
+import { Plugins } from '@capacitor/core';
+
+const { Storage } = Plugins;
+const TOKEN_KEY = 'my-token';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
 export class LoginPage implements OnInit {
-  user = {
-    "id": "",
-    "password": ""
-  }
-  identity;
-  constructor(public loading: LoadingController, private _router: Router, public alert: AlertController, private http: HttpClient) {
+  credentials: FormGroup;
 
-  }
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthenticationService,
+    private alertController: AlertController,
+    private router: Router,
+    private loadingController: LoadingController,
+    public menuCtrl: MenuController
+  ) { }
 
-  ngOnInit() { }
-
-  async onSubmit() {
-    let loading = this.loading.create({
-      message: 'Iniciando...'
+  ngOnInit() {
+    this.credentials = this.fb.group({
+      email: [''],
+      password: [''],
     });
-    (await loading).present();
-    let params = this.user;
-    console.log(params);
-    let headers = new HttpHeaders().set('Content-Type', 'application/json').set('Accept', '*/*')
-    await this.http.post(environment.API +'/login/', params, { headers: headers }).subscribe(async (response) => {
-      console.log(response);
-      window.localStorage.setItem('identity', JSON.stringify(response));
-      (await loading).dismiss();
-      this._router.navigateByUrl('/tabs')
-    }, async error => {
-      this.user.id = ""
-      this.user.password = ""
-      const alert = await this.alert.create({
-        cssClass: 'my-custom-class',
-        header: 'Error',
-        subHeader: '',
-        message: 'Usuario o contraseña erroneos.',
-        buttons: ['OK']
-      });
-      (await loading).dismiss();
-      await alert.present();
-    });
+  }
+
+  ionViewDidEnter(): void {
+    this.menuCtrl.enable(false);
+  }
+
+  ionViewDidLeave(): void {
+    this.menuCtrl.enable(true);
+  }
+  async login() {
+    console.log(this.credentials)
+    const loading = await this.loadingController.create();
+    await loading.present();
+
+    this.authService.login(this.credentials.value).subscribe(
+      async (res) => {
+        console.log(res)
+        await loading.dismiss();
+        let token = await Storage.get({ key: TOKEN_KEY });
+        console.log(token.value)
+        if (token.value == "Usuario no Existente") {
+          const alert = await this.alertController.create({
+            header: 'Error',
+            message: 'La contraseña o el usuario son erróneos',
+            buttons: ['OK'],
+          });
+          await alert.present();
+        } else {
+          this.router.navigateByUrl('/tabs', { replaceUrl: true });
+        }
+      },
+      async (res) => {
+        console.log(res)
+        await loading.dismiss();
+        const alert = await this.alertController.create({
+          header: 'Error',
+          message: 'Parece que tenemos problemas',
+          buttons: ['OK'],
+        });
+
+        await alert.present();
+      }
+    );
+  }
+
+  // Easy access for form fields
+  get email() {
+    return this.credentials.get('email');
+  }
+
+  get password() {
+    return this.credentials.get('password');
   }
 }
