@@ -45,15 +45,15 @@
     <ion-item lines="full">
       <ion-label position="floating">Tipo</ion-label>
       <ion-select [value]="tipo" [(ngModel)]="tipo" name="type" okText="Okay" cancelText="Cancelar">
+        <ion-select-option value="X">Mixto</ion-select-option>
         <ion-select-option value="M">Maquina</ion-select-option>
         <ion-select-option value="P">Persona</ion-select-option>
-        <ion-select-option value="X">Mixto</ion-select-option>
       </ion-select>
     </ion-item>
 
     <ion-item lines="none" *ngIf="tipo != 'P'">
       <ion-label position="floating">Maquina</ion-label>
-      <ion-input [(ngModel)]="maquina" debounce="600" name="maquina" clearOnEdit="true" (ionFocus)="checkMaquinaFocus()" (ionInput)="getMachines($event)"
+      <ion-input [(ngModel)]="machine"  debounce="600" name="maquina" clearOnEdit="true" (ionFocus)="checkMaquinaFocus()" (ionInput)="getMachines($event)"
         required></ion-input>
       <ion-list *ngIf="isMachineAvailable">
         <ion-item *ngFor="let m of itemsMachine" (click)="maquinaSelected(m)">{{ m.NOMBRE }} - {{m.COD_MAQUINA}}
@@ -63,12 +63,16 @@
 
     <ion-item lines="full" *ngIf="showPrecios">
       <ion-label position="floating">Precios</ion-label>
-      <ion-select [(ngModel)]="precio" name="cap">
-        <ion-select-option *ngFor="let i of precios" [value]="i.COD_INTERNO">{{i.NOMBRE}}</ion-select-option>
+      <ion-select [ngModel]="precio.cod"  interface="action-sheet" name="price" (ionChange)="onChange($event)">
+        <ion-select-option *ngFor="let i of precios" [value]="i.COD_INTERNO" >{{i.NOMBRE_PRECIO}}</ion-select-option>
       </ion-select>
     </ion-item>
 
-    <ion-item lines="full" *ngIf="capitulos">
+    <ion-item lines="full" *ngIf="showMessage">
+      <ion-label>Precio seleccionado por defecto</ion-label>
+    </ion-item>
+
+    <ion-item lines="full" *ngIf="capitulos" >
       <ion-label position="floating">Capítulo</ion-label>
       <ion-select interface="action-sheet" [(ngModel)]="capitulo" name="cap">
         <ion-select-option *ngFor="let i of capitulos" [value]="i.CAPITULO">{{i.NOMBRE}}</ion-select-option>
@@ -93,7 +97,7 @@
       </ion-col>
       <ion-col>
         <ion-button type="submit" color="success" expand="block" (click)="save()"
-          [disabled]="!obra || !numHours || numHours <= 0 || capitulo ==='' || tipo =='M' && maquina === '' && precio === '' || tipo =='X' && maquina === '' && precio === '' ">
+          [disabled]="!obra || !numHours || numHours <= 0 || capitulo ==='' || tipo =='M' && maquina === '' && precio.cod === '' || tipo =='X' && maquina === '' && precio.cod === '' ">
           Aceptar</ion-button>
       </ion-col>
     </ion-row>
